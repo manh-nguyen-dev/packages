@@ -510,9 +510,9 @@ abstract class ShellRouteBase extends RouteBase {
             route.parentNavigatorKey == navigatorKey,
         "sub-route's parent navigator key must either be null or has the same navigator key as parent's key",
       );
-      if (route is GoRoute && route.redirectOnly) {
-        // This route does not produce a page, need to check its sub-routes
-        // instead.
+      if (route is GoRoute) {
+        // All sub-sub-routes of a ShellRoute also must have set the parent navigator key,
+        // if the parent is not null.
         _debugCheckSubRouteParentNavigatorKeys(route.routes, navigatorKey);
       }
     }

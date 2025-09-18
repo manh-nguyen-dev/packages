@@ -164,9 +164,8 @@ void main() {
   test('ShellRoute parent navigator key throw if not match', () async {
     final GlobalKey<NavigatorState> key1 = GlobalKey<NavigatorState>();
     final GlobalKey<NavigatorState> key2 = GlobalKey<NavigatorState>();
-    bool hasError = false;
-    try {
-      ShellRoute(
+    expect(
+      () => ShellRoute(
         navigatorKey: key1,
         builder: (_, __, Widget child) => child,
         routes: <RouteBase>[
@@ -178,11 +177,53 @@ void main() {
             ],
           ),
         ],
-      );
-    } on AssertionError catch (_) {
-      hasError = true;
-    }
-    expect(hasError, isTrue);
+      ),
+      throwsA(
+        isA<AssertionError>().having(
+              (AssertionError e) => e.message,
+          'route.parentNavigatorKey == null || route.parentNavigatorKey == navigatorKey',
+          "sub-route's parent navigator key must either be null or has the same navigator key as parent's key",
+        ),
+      ),
+    );
+  });
+
+  // Regression test for flutter/flutter#140586
+  testWidgets('ShellRoute parent navigator key throw if not match on sub-routes', (
+      WidgetTester tester,
+      ) async {
+    final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+    expect(
+          () => ShellRoute(
+        builder:
+            (BuildContext context, GoRouterState state, Widget child) => child,
+        routes: <RouteBase>[
+          GoRoute(
+            path: '/',
+            builder:
+                (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: Text('Screen Root')),
+            routes: <RouteBase>[
+              GoRoute(
+                path: 'a',
+                // This key is set although the parent has no key:
+                parentNavigatorKey: navigatorKey,
+                builder:
+                    (BuildContext context, GoRouterState state) =>
+                const Scaffold(body: Text('Screen A')),
+              ),
+            ],
+          ),
+        ],
+      ),
+      throwsA(
+        isA<AssertionError>().having(
+              (AssertionError e) => e.message,
+          'route.parentNavigatorKey == null || route.parentNavigatorKey == navigatorKey',
+          "sub-route's parent navigator key must either be null or has the same navigator key as parent's key",
+        ),
+      ),
+    );
   });
 
   group('Redirect only GoRoute', () {

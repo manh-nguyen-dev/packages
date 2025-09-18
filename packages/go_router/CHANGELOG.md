@@ -1,3 +1,7 @@
+## 16.2.2
+
+- Adds assertion when setting inconsistent parentNavigatorKey for ShellRoute sub-routes.
+
 ## 16.2.1
 
 - Adds state restoration topic to documentation.
