@@ -247,12 +247,18 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
     match.buildState(widget.configuration, widget.matchList);
     if (pageBuilder != null) {
       final Page<Object?> page = pageBuilder(context, state);
+
       if (page is! NoOpPage) {
-        // If the returned page doesn't contain a key, ensure a stable key by
-        // wrapping the child in the platform adapter page which uses
-        // state.pageKey. This avoids duplicate page keys inside the Navigator.
         if (page.key == null) {
-          return _buildPlatformAdapterPage(context, state, page.child);
+          if (page is MaterialPage) {
+            return _buildPlatformAdapterPage(context, state, page.child);
+          } else if (page is CupertinoPage) {
+            return _buildPlatformAdapterPage(context, state, page.child);
+          } else if (page is NoTransitionPage) {
+            return _buildPlatformAdapterPage(context, state, page.child);
+          } else {
+            return page.copyWith(key: state.pageKey);
+          }
         }
         return page;
       }
