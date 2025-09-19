@@ -55,8 +55,8 @@ class GoRouterDelegate extends RouterDelegate<RouteMatchList>
 
   @override
   Future<bool> popRoute() async {
-    final Iterable<NavigatorState> states = _findCurrentNavigators();
-    for (final NavigatorState state in states) {
+    final NavigatorState? state = _findCurrentNavigator();
+    if (state != null) {
       final bool didPop = await state.maybePop(); // Call maybePop() directly
       if (didPop) {
         return true; // Return true if maybePop handled the pop
@@ -68,10 +68,8 @@ class GoRouterDelegate extends RouterDelegate<RouteMatchList>
     if (lastRoute.onExit != null && navigatorKey.currentContext != null) {
       return !(await lastRoute.onExit!(
         navigatorKey.currentContext!,
-        currentConfiguration.last.buildState(
-          _configuration,
-          currentConfiguration,
-        ),
+        currentConfiguration.last
+            .buildState(_configuration, currentConfiguration),
       ));
     }
 
@@ -98,51 +96,40 @@ class GoRouterDelegate extends RouterDelegate<RouteMatchList>
 
   /// Pops the top-most route.
   void pop<T extends Object?>([T? result]) {
-    final Iterable<NavigatorState> states = _findCurrentNavigators().where(
-      (NavigatorState element) => element.canPop(),
-    );
-    if (states.isEmpty) {
+    final NavigatorState? state = _findCurrentNavigator();
+    if (state == null || !state.canPop()) {
       throw GoError('There is nothing to pop');
     }
-    states.first.pop(result);
+    state.pop(result);
   }
 
-  /// Get a prioritized list of NavigatorStates,
-  /// which either can pop or are exit routes.
-  ///
-  /// 1. Sub route within branches of shell navigation
-  /// 2. Branch route
-  /// 3. Parent route
-  Iterable<NavigatorState> _findCurrentNavigators() {
-    final List<NavigatorState> states = <NavigatorState>[];
-    if (navigatorKey.currentState != null) {
-      // Set state directly without canPop check
-      states.add(navigatorKey.currentState!);
-    }
+  NavigatorState? _findCurrentNavigator() {
+    NavigatorState? state;
+    state =
+        navigatorKey.currentState; // Set state directly without canPop check
 
     RouteMatchBase walker = currentConfiguration.matches.last;
     while (walker is ShellRouteMatch) {
       final NavigatorState potentialCandidate =
           walker.navigatorKey.currentState!;
 
-      final ModalRoute<dynamic>? modalRoute = ModalRoute.of(
-        potentialCandidate.context,
-      );
+      final ModalRoute<dynamic>? modalRoute =
+          ModalRoute.of(potentialCandidate.context);
       if (modalRoute == null || !modalRoute.isCurrent) {
         // Stop if there is a pageless route on top of the shell route.
         break;
       }
-      states.add(potentialCandidate);
+
+      if (potentialCandidate.canPop()) {
+        state = walker.navigatorKey.currentState;
+      }
       walker = walker.matches.last;
     }
-    return states.reversed;
+    return state;
   }
 
   bool _handlePopPageWithRouteMatch(
-    Route<Object?> route,
-    Object? result,
-    RouteMatchBase match,
-  ) {
+      Route<Object?> route, Object? result, RouteMatchBase match) {
     if (route.willHandlePopInternally) {
       final bool popped = route.didPop(result);
       assert(!popped);
@@ -198,10 +185,8 @@ class GoRouterDelegate extends RouterDelegate<RouteMatchList>
 
   /// The top [GoRouterState], the state of the route that was
   /// last used in either [GoRouter.go] or [GoRouter.push].
-  GoRouterState get state => currentConfiguration.last.buildState(
-    _configuration,
-    currentConfiguration,
-  );
+  GoRouterState get state => currentConfiguration.last
+      .buildState(_configuration, currentConfiguration);
 
   /// For use by the Router architecture as part of the RouterDelegate.
   GlobalKey<NavigatorState> get navigatorKey => _configuration.navigatorKey;
@@ -213,7 +198,11 @@ class GoRouterDelegate extends RouterDelegate<RouteMatchList>
   /// For use by the Router architecture as part of the RouterDelegate.
   @override
   Widget build(BuildContext context) {
-    return builder.build(context, currentConfiguration, routerNeglect);
+    return builder.build(
+      context,
+      currentConfiguration,
+      routerNeglect,
+    );
   }
 
   /// For use by the Router architecture as part of the RouterDelegate.
@@ -291,7 +280,11 @@ class GoRouterDelegate extends RouterDelegate<RouteMatchList>
     final RouteMatch match = matches[index];
     final GoRoute goRoute = match.route;
     if (goRoute.onExit == null) {
-      return _callOnExitStartsAt(index - 1, context: context, matches: matches);
+      return _callOnExitStartsAt(
+        index - 1,
+        context: context,
+        matches: matches,
+      );
     }
 
     Future<bool> handleOnExitResult(bool exit) {

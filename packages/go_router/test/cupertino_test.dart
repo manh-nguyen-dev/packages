@@ -11,24 +11,28 @@ import 'helpers/error_screen_helpers.dart';
 
 void main() {
   group('isCupertinoApp', () {
-    testWidgets('returns [true] when CupertinoApp is present', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('returns [true] when CupertinoApp is present',
+        (WidgetTester tester) async {
       final GlobalKey<_DummyStatefulWidgetState> key =
           GlobalKey<_DummyStatefulWidgetState>();
       await tester.pumpWidget(
-        CupertinoApp(home: DummyStatefulWidget(key: key)),
+        CupertinoApp(
+          home: DummyStatefulWidget(key: key),
+        ),
       );
       final bool isCupertino = isCupertinoApp(key.currentContext! as Element);
       expect(isCupertino, true);
     });
 
-    testWidgets('returns [false] when MaterialApp is present', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('returns [false] when MaterialApp is present',
+        (WidgetTester tester) async {
       final GlobalKey<_DummyStatefulWidgetState> key =
           GlobalKey<_DummyStatefulWidgetState>();
-      await tester.pumpWidget(MaterialApp(home: DummyStatefulWidget(key: key)));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DummyStatefulWidget(key: key),
+        ),
+      );
       final bool isCupertino = isCupertinoApp(key.currentContext! as Element);
       expect(isCupertino, false);
     });
@@ -58,7 +62,9 @@ void main() {
     testWidgets(
       'shows "page not found" by default',
       testPageNotFound(
-        widget: const CupertinoApp(home: CupertinoErrorScreen(null)),
+        widget: const CupertinoApp(
+          home: CupertinoErrorScreen(null),
+        ),
       ),
     );
 
@@ -67,7 +73,9 @@ void main() {
       'shows the exception message when provided',
       testPageShowsExceptionMessage(
         exception: exception,
-        widget: CupertinoApp(home: CupertinoErrorScreen(exception)),
+        widget: CupertinoApp(
+          home: CupertinoErrorScreen(exception),
+        ),
       ),
     );
 
@@ -76,7 +84,9 @@ void main() {
       testClickingTheButtonRedirectsToRoot(
         buttonFinder: find.byType(CupertinoButton),
         appRouterBuilder: cupertinoAppRouterBuilder,
-        widget: const CupertinoApp(home: CupertinoErrorScreen(null)),
+        widget: const CupertinoApp(
+          home: CupertinoErrorScreen(null),
+        ),
       ),
     );
   });

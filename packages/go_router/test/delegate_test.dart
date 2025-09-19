@@ -19,159 +19,65 @@ Future<GoRouter> createGoRouter(
     routes: <GoRoute>[
       GoRoute(path: '/', builder: (_, __) => const DummyStatefulWidget()),
       GoRoute(path: '/a', builder: (_, __) => const DummyStatefulWidget()),
-      GoRoute(path: '/error', builder: (_, __) => const ErrorScreen(null)),
+      GoRoute(
+        path: '/error',
+        builder: (_, __) => const ErrorScreen(null),
+      ),
     ],
     refreshListenable: refreshListenable,
   );
   if (dispose) {
     addTearDown(router.dispose);
   }
-  await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+  await tester.pumpWidget(MaterialApp.router(
+    routerConfig: router,
+  ));
   return router;
 }
 
 Future<GoRouter> createGoRouterWithStatefulShellRoute(
-  WidgetTester tester,
-) async {
+    WidgetTester tester) async {
   final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: <RouteBase>[
       GoRoute(path: '/', builder: (_, __) => const DummyStatefulWidget()),
       GoRoute(path: '/a', builder: (_, __) => const DummyStatefulWidget()),
-      StatefulShellRoute.indexedStack(
-        branches: <StatefulShellBranch>[
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/c',
-                builder: (_, __) => const DummyStatefulWidget(),
-                routes: <RouteBase>[
-                  GoRoute(
+      StatefulShellRoute.indexedStack(branches: <StatefulShellBranch>[
+        StatefulShellBranch(routes: <RouteBase>[
+          GoRoute(
+              path: '/c',
+              builder: (_, __) => const DummyStatefulWidget(),
+              routes: <RouteBase>[
+                GoRoute(
                     path: 'c1',
-                    builder: (_, __) => const DummyStatefulWidget(),
-                  ),
-                  GoRoute(
+                    builder: (_, __) => const DummyStatefulWidget()),
+                GoRoute(
                     path: 'c2',
-                    builder: (_, __) => const DummyStatefulWidget(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/d',
-                builder: (_, __) => const DummyStatefulWidget(),
-                routes: <RouteBase>[
-                  GoRoute(
+                    builder: (_, __) => const DummyStatefulWidget()),
+              ]),
+        ]),
+        StatefulShellBranch(routes: <RouteBase>[
+          GoRoute(
+              path: '/d',
+              builder: (_, __) => const DummyStatefulWidget(),
+              routes: <RouteBase>[
+                GoRoute(
                     path: 'd1',
-                    builder: (_, __) => const DummyStatefulWidget(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-        builder: mockStackedShellBuilder,
-      ),
+                    builder: (_, __) => const DummyStatefulWidget()),
+              ]),
+        ]),
+      ], builder: mockStackedShellBuilder),
     ],
   );
   addTearDown(router.dispose);
-  await tester.pumpWidget(MaterialApp.router(routerConfig: router));
-  return router;
-}
-
-Future<GoRouter> createGoRouterWithStatefulShellRouteAndPopScopes(
-  WidgetTester tester, {
-  bool canPopShellRouteBuilder = true,
-  bool canPopBranch = true,
-  bool canPopBranchSubRoute = true,
-  PopInvokedWithResultCallback<bool>? onPopShellRouteBuilder,
-  PopInvokedWithResultCallback<bool>? onPopBranch,
-  PopInvokedWithResultCallback<bool>? onPopBranchSubRoute,
-}) async {
-  final GoRouter router = GoRouter(
-    initialLocation: '/c',
-    routes: <RouteBase>[
-      StatefulShellRoute.indexedStack(
-        branches: <StatefulShellBranch>[
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/c',
-                builder:
-                    (_, __) => PopScope(
-                      onPopInvokedWithResult: onPopBranch,
-                      canPop: canPopBranch,
-                      child: const Text('Home'),
-                    ),
-                routes: <RouteBase>[
-                  GoRoute(
-                    path: 'c1',
-                    builder:
-                        (_, __) => PopScope(
-                          onPopInvokedWithResult: onPopBranchSubRoute,
-                          canPop: canPopBranchSubRoute,
-                          child: const Text('SubRoute'),
-                        ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-        builder:
-            (
-              BuildContext context,
-              GoRouterState state,
-              StatefulNavigationShell navigationShell,
-            ) => PopScope(
-              onPopInvokedWithResult: onPopShellRouteBuilder,
-              canPop: canPopShellRouteBuilder,
-              child: navigationShell,
-            ),
-      ),
-    ],
-  );
-
-  addTearDown(router.dispose);
-  await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+  await tester.pumpWidget(MaterialApp.router(
+    routerConfig: router,
+  ));
   return router;
 }
 
 void main() {
   group('pop', () {
-    testWidgets('restore() update currentConfiguration in pop()', (
-      WidgetTester tester,
-    ) async {
-      final ValueNotifier<int> valueNotifier = ValueNotifier<int>(0);
-      final GoRouter goRouter = await createGoRouter(
-        tester,
-        refreshListenable: valueNotifier,
-        dispose: false,
-      );
-
-      goRouter.push('/a');
-      await tester.pumpAndSettle();
-
-      goRouter.pop();
-      valueNotifier.notifyListeners();
-      await tester.pumpAndSettle();
-      expect(
-        goRouter
-            .routerDelegate
-            .currentConfiguration
-            .matches
-            .last
-            .matchedLocation,
-        '/',
-      );
-
-      addTearDown(valueNotifier.dispose);
-      addTearDown(goRouter.dispose);
-    });
-
     testWidgets('removes the last element', (WidgetTester tester) async {
       final GoRouter goRouter = await createGoRouter(tester)
         ..push('/error');
@@ -182,14 +88,12 @@ void main() {
       await goRouter.routerDelegate.popRoute();
       expect(goRouter.routerDelegate.currentConfiguration.matches.length, 1);
       expect(
-        goRouter.routerDelegate.currentConfiguration.matches.contains(last),
-        false,
-      );
+          goRouter.routerDelegate.currentConfiguration.matches.contains(last),
+          false);
     });
 
-    testWidgets('PopScope intercepts back button on root route', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('PopScope intercepts back button on root route',
+        (WidgetTester tester) async {
       bool didPop = false;
 
       final GoRouter goRouter = GoRouter(
@@ -197,21 +101,22 @@ void main() {
         routes: <GoRoute>[
           GoRoute(
             path: '/',
-            builder:
-                (_, __) => PopScope(
-                  onPopInvokedWithResult: (bool result, _) {
-                    didPop = true;
-                  },
-                  canPop: false,
-                  child: const Text('Home'),
-                ),
+            builder: (_, __) => PopScope(
+              onPopInvokedWithResult: (bool result, _) {
+                didPop = true;
+              },
+              canPop: false,
+              child: const Text('Home'),
+            ),
           ),
         ],
       );
 
       addTearDown(goRouter.dispose);
 
-      await tester.pumpWidget(MaterialApp.router(routerConfig: goRouter));
+      await tester.pumpWidget(MaterialApp.router(
+        routerConfig: goRouter,
+      ));
 
       expect(find.text('Home'), findsOneWidget);
 
@@ -225,97 +130,8 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
     });
 
-    testWidgets(
-      'PopScope intercepts back button on StatefulShellRoute builder route',
-      (WidgetTester tester) async {
-        bool didPopShellRouteBuilder = false;
-        bool didPopBranch = false;
-        bool didPopBranchSubRoute = false;
-
-        await createGoRouterWithStatefulShellRouteAndPopScopes(
-          tester,
-          canPopShellRouteBuilder: false,
-          onPopShellRouteBuilder: (_, __) => didPopShellRouteBuilder = true,
-          onPopBranch: (_, __) => didPopBranch = true,
-          onPopBranchSubRoute: (_, __) => didPopBranchSubRoute = true,
-        );
-
-        expect(find.text('Home'), findsOneWidget);
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-
-        // Verify that PopScope intercepted the back button
-        expect(didPopShellRouteBuilder, isTrue);
-        expect(didPopBranch, isFalse);
-        expect(didPopBranchSubRoute, isFalse);
-
-        expect(find.text('Home'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'PopScope intercepts back button on StatefulShellRoute branch route',
-      (WidgetTester tester) async {
-        bool didPopShellRouteBuilder = false;
-        bool didPopBranch = false;
-        bool didPopBranchSubRoute = false;
-
-        await createGoRouterWithStatefulShellRouteAndPopScopes(
-          tester,
-          canPopBranch: false,
-          onPopShellRouteBuilder: (_, __) => didPopShellRouteBuilder = true,
-          onPopBranch: (_, __) => didPopBranch = true,
-          onPopBranchSubRoute: (_, __) => didPopBranchSubRoute = true,
-        );
-
-        expect(find.text('Home'), findsOneWidget);
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-
-        // Verify that PopScope intercepted the back button
-        expect(didPopShellRouteBuilder, isFalse);
-        expect(didPopBranch, isTrue);
-        expect(didPopBranchSubRoute, isFalse);
-
-        expect(find.text('Home'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'PopScope intercepts back button on StatefulShellRoute branch sub route',
-      (WidgetTester tester) async {
-        bool didPopShellRouteBuilder = false;
-        bool didPopBranch = false;
-        bool didPopBranchSubRoute = false;
-
-        final GoRouter goRouter =
-            await createGoRouterWithStatefulShellRouteAndPopScopes(
-              tester,
-              canPopBranchSubRoute: false,
-              onPopShellRouteBuilder: (_, __) => didPopShellRouteBuilder = true,
-              onPopBranch: (_, __) => didPopBranch = true,
-              onPopBranchSubRoute: (_, __) => didPopBranchSubRoute = true,
-            );
-
-        goRouter.push('/c/c1');
-        await tester.pumpAndSettle();
-
-        expect(find.text('SubRoute'), findsOneWidget);
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-
-        // Verify that PopScope intercepted the back button
-        expect(didPopShellRouteBuilder, isFalse);
-        expect(didPopBranch, isFalse);
-        expect(didPopBranchSubRoute, isTrue);
-
-        expect(find.text('SubRoute'), findsOneWidget);
-      },
-    );
-
-    testWidgets('pops more than matches count should return false', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('pops more than matches count should return false',
+        (WidgetTester tester) async {
       final GoRouter goRouter = await createGoRouter(tester)
         ..push('/error');
       await tester.pumpAndSettle();
@@ -326,26 +142,29 @@ void main() {
     testWidgets('throw if nothing to pop', (WidgetTester tester) async {
       final GlobalKey<NavigatorState> rootKey = GlobalKey<NavigatorState>();
       final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
-      final GoRouter goRouter = await createRouter(<RouteBase>[
-        ShellRoute(
-          navigatorKey: rootKey,
-          builder: (_, __, Widget child) => child,
-          routes: <RouteBase>[
-            ShellRoute(
-              parentNavigatorKey: rootKey,
-              navigatorKey: navKey,
-              builder: (_, __, Widget child) => child,
-              routes: <RouteBase>[
-                GoRoute(
-                  path: '/',
-                  parentNavigatorKey: navKey,
-                  builder: (_, __) => const Text('Home'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ], tester);
+      final GoRouter goRouter = await createRouter(
+        <RouteBase>[
+          ShellRoute(
+            navigatorKey: rootKey,
+            builder: (_, __, Widget child) => child,
+            routes: <RouteBase>[
+              ShellRoute(
+                parentNavigatorKey: rootKey,
+                navigatorKey: navKey,
+                builder: (_, __, Widget child) => child,
+                routes: <RouteBase>[
+                  GoRoute(
+                    path: '/',
+                    parentNavigatorKey: navKey,
+                    builder: (_, __) => const Text('Home'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+        tester,
+      );
       await tester.pumpAndSettle();
       expect(find.text('Home'), findsOneWidget);
       String? message;
@@ -357,66 +176,65 @@ void main() {
       expect(message, 'There is nothing to pop');
     });
 
-    testWidgets('poproute return false if nothing to pop', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('poproute return false if nothing to pop',
+        (WidgetTester tester) async {
       final GlobalKey<NavigatorState> rootKey = GlobalKey<NavigatorState>();
       final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
-      final GoRouter goRouter = await createRouter(<RouteBase>[
-        ShellRoute(
-          navigatorKey: rootKey,
-          builder: (_, __, Widget child) => child,
-          routes: <RouteBase>[
-            ShellRoute(
-              parentNavigatorKey: rootKey,
-              navigatorKey: navKey,
-              builder: (_, __, Widget child) => child,
-              routes: <RouteBase>[
-                GoRoute(
-                  path: '/',
-                  parentNavigatorKey: navKey,
-                  builder: (_, __) => const Text('Home'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ], tester);
+      final GoRouter goRouter = await createRouter(
+        <RouteBase>[
+          ShellRoute(
+            navigatorKey: rootKey,
+            builder: (_, __, Widget child) => child,
+            routes: <RouteBase>[
+              ShellRoute(
+                parentNavigatorKey: rootKey,
+                navigatorKey: navKey,
+                builder: (_, __, Widget child) => child,
+                routes: <RouteBase>[
+                  GoRoute(
+                    path: '/',
+                    parentNavigatorKey: navKey,
+                    builder: (_, __) => const Text('Home'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+        tester,
+      );
       expect(await goRouter.routerDelegate.popRoute(), isFalse);
     });
   });
 
   group('push', () {
-    testWidgets('It should return different pageKey when push is called', (
-      WidgetTester tester,
-    ) async {
-      final GoRouter goRouter = await createGoRouter(tester);
-      expect(goRouter.routerDelegate.currentConfiguration.matches.length, 1);
+    testWidgets(
+      'It should return different pageKey when push is called',
+      (WidgetTester tester) async {
+        final GoRouter goRouter = await createGoRouter(tester);
+        expect(goRouter.routerDelegate.currentConfiguration.matches.length, 1);
 
-      goRouter.push('/a');
-      await tester.pumpAndSettle();
+        goRouter.push('/a');
+        await tester.pumpAndSettle();
 
-      goRouter.push('/a');
-      await tester.pumpAndSettle();
+        goRouter.push('/a');
+        await tester.pumpAndSettle();
 
-      expect(goRouter.routerDelegate.currentConfiguration.matches.length, 3);
-      expect(
-        goRouter.routerDelegate.currentConfiguration.matches[1].pageKey,
-        isNot(
-          equals(
-            goRouter.routerDelegate.currentConfiguration.matches[2].pageKey,
-          ),
-        ),
-      );
-    });
+        expect(goRouter.routerDelegate.currentConfiguration.matches.length, 3);
+        expect(
+          goRouter.routerDelegate.currentConfiguration.matches[1].pageKey,
+          isNot(equals(
+              goRouter.routerDelegate.currentConfiguration.matches[2].pageKey)),
+        );
+      },
+    );
 
     testWidgets(
       'It should successfully push a route from outside the the current '
       'StatefulShellRoute',
       (WidgetTester tester) async {
-        final GoRouter goRouter = await createGoRouterWithStatefulShellRoute(
-          tester,
-        );
+        final GoRouter goRouter =
+            await createGoRouterWithStatefulShellRoute(tester);
         goRouter.push('/c/c1');
         await tester.pumpAndSettle();
         goRouter.push('/a');
@@ -424,11 +242,8 @@ void main() {
         expect(goRouter.routerDelegate.currentConfiguration.matches.length, 3);
         expect(
           goRouter.routerDelegate.currentConfiguration.matches[1].pageKey,
-          isNot(
-            equals(
-              goRouter.routerDelegate.currentConfiguration.matches[2].pageKey,
-            ),
-          ),
+          isNot(equals(
+              goRouter.routerDelegate.currentConfiguration.matches[2].pageKey)),
         );
       },
     );
@@ -437,9 +252,8 @@ void main() {
       'It should successfully push a route that is a descendant of the current '
       'StatefulShellRoute branch',
       (WidgetTester tester) async {
-        final GoRouter goRouter = await createGoRouterWithStatefulShellRoute(
-          tester,
-        );
+        final GoRouter goRouter =
+            await createGoRouterWithStatefulShellRoute(tester);
         goRouter.push('/c/c1');
         await tester.pumpAndSettle();
 
@@ -447,9 +261,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(goRouter.routerDelegate.currentConfiguration.matches.length, 2);
-        final ShellRouteMatch shellRouteMatch =
-            goRouter.routerDelegate.currentConfiguration.matches.last
-                as ShellRouteMatch;
+        final ShellRouteMatch shellRouteMatch = goRouter.routerDelegate
+            .currentConfiguration.matches.last as ShellRouteMatch;
         expect(shellRouteMatch.matches.length, 2);
         expect(
           shellRouteMatch.matches[0].pageKey,
@@ -462,9 +275,8 @@ void main() {
       'It should successfully push the root of the current StatefulShellRoute '
       'branch upon itself',
       (WidgetTester tester) async {
-        final GoRouter goRouter = await createGoRouterWithStatefulShellRoute(
-          tester,
-        );
+        final GoRouter goRouter =
+            await createGoRouterWithStatefulShellRoute(tester);
         goRouter.push('/c');
         await tester.pumpAndSettle();
 
@@ -472,9 +284,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(goRouter.routerDelegate.currentConfiguration.matches.length, 2);
-        final ShellRouteMatch shellRouteMatch =
-            goRouter.routerDelegate.currentConfiguration.matches.last
-                as ShellRouteMatch;
+        final ShellRouteMatch shellRouteMatch = goRouter.routerDelegate
+            .currentConfiguration.matches.last as ShellRouteMatch;
         expect(shellRouteMatch.matches.length, 2);
         expect(
           shellRouteMatch.matches[0].pageKey,
@@ -506,25 +317,25 @@ void main() {
         expect(goRouter.routerDelegate.canPop(), true);
       },
     );
-    testWidgets('It should return false if there are no matches in the stack', (
-      WidgetTester tester,
-    ) async {
-      final GoRouter goRouter = GoRouter(
-        initialLocation: '/',
-        routes: <GoRoute>[],
-      );
-      addTearDown(goRouter.dispose);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: goRouter));
-      await tester.pumpAndSettle();
-      expect(goRouter.routerDelegate.currentConfiguration.matches.length, 0);
-      expect(goRouter.routerDelegate.canPop(), false);
-    });
+    testWidgets(
+      'It should return false if there are no matches in the stack',
+      (WidgetTester tester) async {
+        final GoRouter goRouter = GoRouter(
+          initialLocation: '/',
+          routes: <GoRoute>[],
+        );
+        addTearDown(goRouter.dispose);
+        await tester.pumpWidget(MaterialApp.router(routerConfig: goRouter));
+        await tester.pumpAndSettle();
+        expect(goRouter.routerDelegate.currentConfiguration.matches.length, 0);
+        expect(goRouter.routerDelegate.canPop(), false);
+      },
+    );
   });
 
   group('pushReplacement', () {
-    testWidgets('It should replace the last match with the given one', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('It should replace the last match with the given one',
+        (WidgetTester tester) async {
       final GoRouter goRouter = GoRouter(
         initialLocation: '/',
         routes: <GoRoute>[
@@ -534,7 +345,11 @@ void main() {
         ],
       );
       addTearDown(goRouter.dispose);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: goRouter));
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: goRouter,
+        ),
+      );
 
       goRouter.push('/page-0');
 
@@ -595,62 +410,65 @@ void main() {
   });
 
   group('pushReplacementNamed', () {
-    testWidgets('It should replace the last match with the given one', (
-      WidgetTester tester,
-    ) async {
-      final GoRouter goRouter = GoRouter(
-        initialLocation: '/',
-        routes: <GoRoute>[
-          GoRoute(path: '/', builder: (_, __) => const SizedBox()),
-          GoRoute(
-            path: '/page-0',
-            name: 'page0',
-            builder: (_, __) => const SizedBox(),
+    testWidgets(
+      'It should replace the last match with the given one',
+      (WidgetTester tester) async {
+        final GoRouter goRouter = GoRouter(
+          initialLocation: '/',
+          routes: <GoRoute>[
+            GoRoute(path: '/', builder: (_, __) => const SizedBox()),
+            GoRoute(
+                path: '/page-0',
+                name: 'page0',
+                builder: (_, __) => const SizedBox()),
+            GoRoute(
+                path: '/page-1',
+                name: 'page1',
+                builder: (_, __) => const SizedBox()),
+          ],
+        );
+        addTearDown(goRouter.dispose);
+        await tester.pumpWidget(
+          MaterialApp.router(
+            routerConfig: goRouter,
           ),
-          GoRoute(
-            path: '/page-1',
-            name: 'page1',
-            builder: (_, __) => const SizedBox(),
+        );
+
+        goRouter.pushNamed('page0');
+
+        goRouter.routerDelegate.addListener(expectAsync0(() {}));
+        final RouteMatchBase first =
+            goRouter.routerDelegate.currentConfiguration.matches.first;
+        final RouteMatch last =
+            goRouter.routerDelegate.currentConfiguration.last;
+        goRouter.pushReplacementNamed('page1');
+        expect(goRouter.routerDelegate.currentConfiguration.matches.length, 2);
+        expect(
+          goRouter.routerDelegate.currentConfiguration.matches.first,
+          first,
+          reason: 'The first match should still be in the list of matches',
+        );
+        expect(
+          goRouter.routerDelegate.currentConfiguration.last,
+          isNot(last),
+          reason: 'The last match should have been removed',
+        );
+        expect(
+          goRouter.routerDelegate.currentConfiguration.last,
+          isA<RouteMatch>().having(
+            (RouteMatch match) => match.route.name,
+            'match.route.name',
+            'page1',
           ),
-        ],
-      );
-      addTearDown(goRouter.dispose);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: goRouter));
-
-      goRouter.pushNamed('page0');
-
-      goRouter.routerDelegate.addListener(expectAsync0(() {}));
-      final RouteMatchBase first =
-          goRouter.routerDelegate.currentConfiguration.matches.first;
-      final RouteMatch last = goRouter.routerDelegate.currentConfiguration.last;
-      goRouter.pushReplacementNamed('page1');
-      expect(goRouter.routerDelegate.currentConfiguration.matches.length, 2);
-      expect(
-        goRouter.routerDelegate.currentConfiguration.matches.first,
-        first,
-        reason: 'The first match should still be in the list of matches',
-      );
-      expect(
-        goRouter.routerDelegate.currentConfiguration.last,
-        isNot(last),
-        reason: 'The last match should have been removed',
-      );
-      expect(
-        goRouter.routerDelegate.currentConfiguration.last,
-        isA<RouteMatch>().having(
-          (RouteMatch match) => match.route.name,
-          'match.route.name',
-          'page1',
-        ),
-        reason: 'The new location should have been pushed',
-      );
-    });
+          reason: 'The new location should have been pushed',
+        );
+      },
+    );
   });
 
   group('replace', () {
-    testWidgets('It should replace the last match with the given one', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('It should replace the last match with the given one',
+        (WidgetTester tester) async {
       final GoRouter goRouter = GoRouter(
         initialLocation: '/',
         routes: <GoRoute>[
@@ -660,7 +478,11 @@ void main() {
         ],
       );
       addTearDown(goRouter.dispose);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: goRouter));
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: goRouter,
+        ),
+      );
 
       goRouter.push('/page-0');
 
@@ -774,13 +596,14 @@ void main() {
         ],
       );
       addTearDown(router.dispose);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(MaterialApp.router(
+        routerConfig: router,
+      ));
       return router;
     }
 
-    testWidgets('It should replace the last match with the given one', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('It should replace the last match with the given one',
+        (WidgetTester tester) async {
       final GoRouter goRouter = await createGoRouter(tester);
 
       goRouter.pushNamed('page0');
@@ -869,9 +692,8 @@ void main() {
     );
   });
 
-  testWidgets('dispose unsubscribes from refreshListenable', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('dispose unsubscribes from refreshListenable',
+      (WidgetTester tester) async {
     final FakeRefreshListenable refreshListenable = FakeRefreshListenable();
     addTearDown(refreshListenable.dispose);
 

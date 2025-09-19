@@ -5,41 +5,55 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-void main() => runApp(App());
+void main() => runApp(
+      const RootRestorationScope(restorationId: 'root', child: App()),
+    );
 
 /// The main app.
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   /// Creates an [App].
-  App({super.key});
+  const App({super.key});
 
   /// The title of the app.
-  static const String title = 'GoRouter Example: Initial Location';
+  static const String title = 'GoRouter Example: State Restoration';
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> with RestorationMixin {
+  @override
+  String get restorationId => 'wrapper';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    // Implement restoreState for your app
+  }
 
   @override
   Widget build(BuildContext context) => MaterialApp.router(
         routerConfig: _router,
-        title: title,
+        title: App.title,
+        restorationScopeId: 'app',
       );
 
   final GoRouter _router = GoRouter(
-    initialLocation: '/page3',
     routes: <GoRoute>[
+      // restorationId set for the route automatically
       GoRoute(
         path: '/',
         builder: (BuildContext context, GoRouterState state) =>
             const Page1Screen(),
       ),
+
+      // restorationId set for the route automatically
       GoRoute(
         path: '/page2',
         builder: (BuildContext context, GoRouterState state) =>
             const Page2Screen(),
       ),
-      GoRoute(
-        path: '/page3',
-        builder: (BuildContext context, GoRouterState state) =>
-            const Page3Screen(),
-      ),
     ],
+    restorationScopeId: 'router',
   );
 }
 
@@ -80,28 +94,6 @@ class Page2Screen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => context.go('/'),
                 child: const Text('Go to home page'),
-              ),
-            ],
-          ),
-        ),
-      );
-}
-
-/// The screen of the third page.
-class Page3Screen extends StatelessWidget {
-  /// Creates a [Page3Screen].
-  const Page3Screen({super.key});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text(App.title)),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ElevatedButton(
-                onPressed: () => context.go('/page2'),
-                child: const Text('Go to page 2'),
               ),
             ],
           ),

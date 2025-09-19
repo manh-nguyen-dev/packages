@@ -34,8 +34,10 @@ void main() {
     'It should not log anything the if debugLogDiagnostics is false',
     (WidgetTester tester) async {
       testDeveloperLog = expectAsync1((LogRecord data) {}, count: 0);
-      final StreamSubscription<LogRecord> subscription = Logger.root.onRecord
-          .listen(expectAsync1((LogRecord data) {}, count: 0));
+      final StreamSubscription<LogRecord> subscription =
+          Logger.root.onRecord.listen(
+        expectAsync1((LogRecord data) {}, count: 0),
+      );
       addTearDown(subscription.cancel);
       GoRouter(
         routes: <RouteBase>[
@@ -57,7 +59,9 @@ void main() {
         reason: 'Go router should log the 2 events',
       );
       final List<String> logs = <String>[];
-      Logger.root.onRecord.listen((LogRecord event) => logs.add(event.message));
+      Logger.root.onRecord.listen(
+        (LogRecord event) => logs.add(event.message),
+      );
       GoRouter(
         debugLogDiagnostics: true,
         routes: <RouteBase>[
@@ -68,10 +72,14 @@ void main() {
         ],
       );
 
-      expect(logs, const <String>[
-        'Full paths for routes:\n└─/ (Text)\n',
-        'setting initial location null',
-      ], reason: 'Go router should have sent the 2 events to the logger');
+      expect(
+        logs,
+        const <String>[
+          'Full paths for routes:\n└─/ (Text)\n',
+          'setting initial location null'
+        ],
+        reason: 'Go router should have sent the 2 events to the logger',
+      );
     },
   );
 
@@ -86,7 +94,9 @@ void main() {
       hierarchicalLoggingEnabled = true;
 
       final List<String> logs = <String>[];
-      Logger.root.onRecord.listen((LogRecord event) => logs.add(event.message));
+      Logger.root.onRecord.listen(
+        (LogRecord event) => logs.add(event.message),
+      );
       GoRouter(
         debugLogDiagnostics: true,
         routes: <RouteBase>[
@@ -97,10 +107,14 @@ void main() {
         ],
       );
 
-      expect(logs, const <String>[
-        'Full paths for routes:\n└─/ (Text)\n',
-        'setting initial location null',
-      ], reason: 'Go router should have sent the 2 events to the logger');
+      expect(
+        logs,
+        const <String>[
+          'Full paths for routes:\n└─/ (Text)\n',
+          'setting initial location null'
+        ],
+        reason: 'Go router should have sent the 2 events to the logger',
+      );
     },
   );
 }

@@ -9,11 +9,7 @@ void main() {
   test('patternToRegExp without path parameter', () async {
     const String pattern = '/settings/detail';
     final List<String> pathParameter = <String>[];
-    final RegExp regex = patternToRegExp(
-      pattern,
-      pathParameter,
-      caseSensitive: true,
-    );
+    final RegExp regex = patternToRegExp(pattern, pathParameter);
     expect(pathParameter.isEmpty, isTrue);
     expect(regex.hasMatch('/settings/detail'), isTrue);
     expect(regex.hasMatch('/settings/'), isFalse);
@@ -26,21 +22,15 @@ void main() {
   test('patternToRegExp with path parameter', () async {
     const String pattern = '/user/:id/book/:bookId';
     final List<String> pathParameter = <String>[];
-    final RegExp regex = patternToRegExp(
-      pattern,
-      pathParameter,
-      caseSensitive: true,
-    );
+    final RegExp regex = patternToRegExp(pattern, pathParameter);
     expect(pathParameter.length, 2);
     expect(pathParameter[0], 'id');
     expect(pathParameter[1], 'bookId');
 
     final RegExpMatch? match = regex.firstMatch('/user/123/book/456/');
     expect(match, isNotNull);
-    final Map<String, String> parameterValues = extractPathParameters(
-      pathParameter,
-      match!,
-    );
+    final Map<String, String> parameterValues =
+        extractPathParameters(pathParameter, match!);
     expect(parameterValues.length, 2);
     expect(parameterValues[pathParameter[0]], '123');
     expect(parameterValues[pathParameter[1]], '456');
@@ -54,20 +44,14 @@ void main() {
   test('patternToPath without path parameter', () async {
     const String pattern = '/settings/detail';
     final List<String> pathParameter = <String>[];
-    final RegExp regex = patternToRegExp(
-      pattern,
-      pathParameter,
-      caseSensitive: true,
-    );
+    final RegExp regex = patternToRegExp(pattern, pathParameter);
 
     const String url = '/settings/detail';
     final RegExpMatch? match = regex.firstMatch(url);
     expect(match, isNotNull);
 
-    final Map<String, String> parameterValues = extractPathParameters(
-      pathParameter,
-      match!,
-    );
+    final Map<String, String> parameterValues =
+        extractPathParameters(pathParameter, match!);
     final String restoredUrl = patternToPath(pattern, parameterValues);
 
     expect(url, restoredUrl);
@@ -76,20 +60,14 @@ void main() {
   test('patternToPath with path parameter', () async {
     const String pattern = '/user/:id/book/:bookId';
     final List<String> pathParameter = <String>[];
-    final RegExp regex = patternToRegExp(
-      pattern,
-      pathParameter,
-      caseSensitive: true,
-    );
+    final RegExp regex = patternToRegExp(pattern, pathParameter);
 
     const String url = '/user/123/book/456';
     final RegExpMatch? match = regex.firstMatch(url);
     expect(match, isNotNull);
 
-    final Map<String, String> parameterValues = extractPathParameters(
-      pathParameter,
-      match!,
-    );
+    final Map<String, String> parameterValues =
+        extractPathParameters(pathParameter, match!);
     final String restoredUrl = patternToPath(pattern, parameterValues);
 
     expect(url, restoredUrl);

@@ -11,23 +11,27 @@ import 'helpers/error_screen_helpers.dart';
 
 void main() {
   group('isMaterialApp', () {
-    testWidgets('returns [true] when MaterialApp is present', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('returns [true] when MaterialApp is present',
+        (WidgetTester tester) async {
       final GlobalKey<_DummyStatefulWidgetState> key =
           GlobalKey<_DummyStatefulWidgetState>();
-      await tester.pumpWidget(MaterialApp(home: DummyStatefulWidget(key: key)));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DummyStatefulWidget(key: key),
+        ),
+      );
       final bool isMaterial = isMaterialApp(key.currentContext! as Element);
       expect(isMaterial, true);
     });
 
-    testWidgets('returns [false] when CupertinoApp is present', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('returns [false] when CupertinoApp is present',
+        (WidgetTester tester) async {
       final GlobalKey<_DummyStatefulWidgetState> key =
           GlobalKey<_DummyStatefulWidgetState>();
       await tester.pumpWidget(
-        CupertinoApp(home: DummyStatefulWidget(key: key)),
+        CupertinoApp(
+          home: DummyStatefulWidget(key: key),
+        ),
       );
       final bool isMaterial = isMaterialApp(key.currentContext! as Element);
       expect(isMaterial, false);
@@ -58,7 +62,9 @@ void main() {
     testWidgets(
       'shows "page not found" by default',
       testPageNotFound(
-        widget: const MaterialApp(home: MaterialErrorScreen(null)),
+        widget: const MaterialApp(
+          home: MaterialErrorScreen(null),
+        ),
       ),
     );
 
@@ -67,7 +73,9 @@ void main() {
       'shows the exception message when provided',
       testPageShowsExceptionMessage(
         exception: exception,
-        widget: MaterialApp(home: MaterialErrorScreen(exception)),
+        widget: MaterialApp(
+          home: MaterialErrorScreen(exception),
+        ),
       ),
     );
 
@@ -75,7 +83,9 @@ void main() {
       'clicking the TextButton should redirect to /',
       testClickingTheButtonRedirectsToRoot(
         buttonFinder: find.byType(TextButton),
-        widget: const MaterialApp(home: MaterialErrorScreen(null)),
+        widget: const MaterialApp(
+          home: MaterialErrorScreen(null),
+        ),
       ),
     );
   });

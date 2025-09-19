@@ -42,7 +42,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: _router);
+    return MaterialApp.router(
+      routerConfig: _router,
+    );
   }
 }
 
@@ -77,7 +79,9 @@ class NotFoundScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Page Not Found')),
-      body: Center(child: Text("Can't find a page for: $uri")),
+      body: Center(
+        child: Text("Can't find a page for: $uri"),
+      ),
     );
   }
 }
