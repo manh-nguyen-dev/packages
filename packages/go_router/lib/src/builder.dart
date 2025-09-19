@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show MaterialPage;
+import 'package:flutter/cupertino.dart' show CupertinoPage;
 
 import 'configuration.dart';
 import 'logging.dart';
