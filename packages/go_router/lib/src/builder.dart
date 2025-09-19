@@ -18,22 +18,22 @@ import 'state.dart';
 
 /// Signature of a go router builder function with navigator.
 typedef GoRouterBuilderWithNav = Widget Function(
-  BuildContext context,
-  Widget child,
-);
+    BuildContext context,
+    Widget child,
+    );
 
 typedef _PageBuilderForAppType = Page<void> Function({
-  required LocalKey key,
-  required String? name,
-  required Object? arguments,
-  required String restorationId,
-  required Widget child,
+required LocalKey key,
+required String? name,
+required Object? arguments,
+required String restorationId,
+required Widget child,
 });
 
 typedef _ErrorBuilderForAppType = Widget Function(
-  BuildContext context,
-  GoRouterState state,
-);
+    BuildContext context,
+    GoRouterState state,
+    );
 
 /// Signature for a function that takes in a `route` to be popped with
 /// the `result` and returns a boolean decision on whether the pop
@@ -96,11 +96,11 @@ class RouteBuilder {
 
   /// Builds the top-level Navigator for the given [RouteMatchList].
   Widget build(
-    BuildContext context,
-    RouteMatchList matchList,
-    bool routerNeglect, // TODO(tolo): This parameter is not used and should be
-    // removed in the next major version.
-  ) {
+      BuildContext context,
+      RouteMatchList matchList,
+      bool routerNeglect, // TODO(tolo): This parameter is not used and should be
+      // removed in the next major version.
+      ) {
     if (matchList.isEmpty && !matchList.isError) {
       // The build method can be called before async redirect finishes. Build a
       // empty box until then.
@@ -130,16 +130,16 @@ class RouteBuilder {
 class _CustomNavigator extends StatefulWidget {
   const _CustomNavigator(
       {super.key,
-      required this.navigatorKey,
-      required this.observers,
-      required this.navigatorRestorationId,
-      required this.onPopPageWithRouteMatch,
-      required this.matchList,
-      required this.matches,
-      required this.configuration,
-      required this.errorBuilder,
-      required this.errorPageBuilder,
-      required this.requestFocus});
+        required this.navigatorKey,
+        required this.observers,
+        required this.navigatorRestorationId,
+        required this.onPopPageWithRouteMatch,
+        required this.matchList,
+        required this.matches,
+        required this.configuration,
+        required this.errorBuilder,
+        required this.errorPageBuilder,
+        required this.requestFocus});
 
   final GlobalKey<NavigatorState> navigatorKey;
   final List<NavigatorObserver> observers;
@@ -205,9 +205,9 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
     assert(_pages == null);
     final List<Page<Object?>> pages = <Page<Object?>>[];
     final Map<Page<Object?>, RouteMatchBase> pageToRouteMatchBase =
-        <Page<Object?>, RouteMatchBase>{};
+    <Page<Object?>, RouteMatchBase>{};
     final Map<Page<Object?>, GoRouterState> registry =
-        <Page<Object?>, GoRouterState>{};
+    <Page<Object?>, GoRouterState>{};
     if (widget.matchList.isError) {
       pages.add(_buildErrorPage(context, widget.matchList));
     } else {
@@ -244,10 +244,16 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
   Page<Object?>? _buildPageForGoRoute(BuildContext context, RouteMatch match) {
     final GoRouterPageBuilder? pageBuilder = match.route.pageBuilder;
     final GoRouterState state =
-        match.buildState(widget.configuration, widget.matchList);
+    match.buildState(widget.configuration, widget.matchList);
     if (pageBuilder != null) {
       final Page<Object?> page = pageBuilder(context, state);
       if (page is! NoOpPage) {
+        // If the returned page doesn't contain a key, ensure a stable key by
+        // wrapping the child in the platform adapter page which uses
+        // state.pageKey. This avoids duplicate page keys inside the Navigator.
+        if (page.key == null) {
+          return _buildPlatformAdapterPage(context, state, page.child);
+        }
         return page;
       }
     }
@@ -259,17 +265,17 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
     }
     return _buildPlatformAdapterPage(context, state,
         Builder(builder: (BuildContext context) {
-      return builder(context, state);
-    }));
+          return builder(context, state);
+        }));
   }
 
   /// Builds a [Page] for a [ShellRouteMatch]
   Page<Object?> _buildPageForShellRoute(
-    BuildContext context,
-    ShellRouteMatch match,
-  ) {
+      BuildContext context,
+      ShellRouteMatch match,
+      ) {
     final GoRouterState state =
-        match.buildState(widget.configuration, widget.matchList);
+    match.buildState(widget.configuration, widget.matchList);
     final GlobalKey<NavigatorState> navigatorKey = match.navigatorKey;
     final ShellRouteContext shellRouteContext = ShellRouteContext(
       route: match.route,
@@ -278,14 +284,14 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
       match: match,
       routeMatchList: widget.matchList,
       navigatorBuilder: (
-        GlobalKey<NavigatorState> navigatorKey,
-        ShellRouteMatch match,
-        RouteMatchList matchList,
-        List<NavigatorObserver>? observers,
-        String? restorationScopeId,
-      ) {
+          GlobalKey<NavigatorState> navigatorKey,
+          ShellRouteMatch match,
+          RouteMatchList matchList,
+          List<NavigatorObserver>? observers,
+          String? restorationScopeId,
+          ) {
         return _CustomNavigator(
-            // The state needs to persist across rebuild.
+          // The state needs to persist across rebuild.
             key: GlobalObjectKey(navigatorKey.hashCode),
             navigatorRestorationId: restorationScopeId,
             navigatorKey: navigatorKey,
@@ -301,8 +307,13 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
       },
     );
     final Page<Object?>? page =
-        match.route.buildPage(context, state, shellRouteContext);
+    match.route.buildPage(context, state, shellRouteContext);
     if (page != null && page is! NoOpPage) {
+      // If pageBuilder returned a page without key, wrap it to ensure stable
+      // key usage.
+      if (page.key == null) {
+        return _buildPlatformAdapterPage(context, state, page.child);
+      }
       return page;
     }
 
@@ -367,10 +378,10 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
 
   /// builds the page based on app type, i.e. MaterialApp vs. CupertinoApp
   Page<Object?> _buildPlatformAdapterPage(
-    BuildContext context,
-    GoRouterState state,
-    Widget child,
-  ) {
+      BuildContext context,
+      GoRouterState state,
+      Widget child,
+      ) {
     // build the page based on app type
     _cacheAppType(context);
     return _pageBuilderForAppType!(
@@ -410,15 +421,21 @@ class _CustomNavigatorState extends State<_CustomNavigator> {
     // wrapped in the app-specific page.
     _cacheAppType(context);
     final GoRouterWidgetBuilder? errorBuilder = widget.errorBuilder;
-    return widget.errorPageBuilder != null
+    final Page<void> page = widget.errorPageBuilder != null
         ? widget.errorPageBuilder!(context, state)
         : _buildPlatformAdapterPage(
-            context,
-            state,
-            errorBuilder != null
-                ? errorBuilder(context, state)
-                : _errorBuilderForAppType!(context, state),
-          );
+      context,
+      state,
+      errorBuilder != null
+          ? errorBuilder(context, state)
+          : _errorBuilderForAppType!(context, state),
+    );
+
+    // ensure error page has stable key
+    if (page.key == null) {
+      return _buildPlatformAdapterPage(context, state, page.child);
+    }
+    return page;
   }
 
   bool _handlePopPage(Route<Object?> route, Object? result) {
